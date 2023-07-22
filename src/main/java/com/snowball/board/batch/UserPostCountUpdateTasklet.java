@@ -1,4 +1,4 @@
-package com.snowball.board.common.batch;
+package com.snowball.board.batch;
 
 import com.snowball.board.common.util.UserRole;
 import com.snowball.board.domain.user.model.User;
@@ -7,6 +7,7 @@ import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -14,7 +15,8 @@ import java.util.List;
 @Component
 public class UserPostCountUpdateTasklet implements Tasklet {
 
-    private final Long POST_COUNT_THRESHOLD = 10L;
+    @Value("${spring.batch.post-count-threshold}")
+    private Long POST_COUNT_THRESHOLD;
 
     private final UserRepository userRepository;
 

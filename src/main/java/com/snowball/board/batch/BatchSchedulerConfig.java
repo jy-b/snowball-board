@@ -1,4 +1,4 @@
-package com.snowball.board.config;
+package com.snowball.board.batch;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
