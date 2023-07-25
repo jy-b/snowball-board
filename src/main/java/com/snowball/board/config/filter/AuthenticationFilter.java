@@ -32,7 +32,7 @@ public class AuthenticationFilter extends UsernamePasswordAuthenticationFilter {
             authRequest = generateAuthenticationToken(request);
             return this.getAuthenticationManager().authenticate(authRequest);
         } catch (Exception exception) {
-            throw new UnauthorizedException(AuthExceptionMessage.NOT_AUTHORIZED_ACCESS.message());
+            throw new UnauthorizedException(AuthExceptionMessage.AUTH_NOT_MATCH.message());
         }
     }
 
