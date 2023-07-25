@@ -1,13 +1,11 @@
 function isValidAccessToken(accessToken) {
     if (!accessToken) {
-        alert("생성된 토큰이 없어용")
-        return false; // Access token not exist
+        throw new Error("생성된 토큰이 없어요"); // Throw an error for missing access token
     }
 
     const tokenParts = accessToken.split('.');
     if (tokenParts.length !== 3) {
-        alert("토큰 규격이 엉망이에요")
-        return false; // Invalid token format
+        throw new Error("토큰 규격이 엉망이에요"); // Throw an error for invalid token format
     }
 
     // Split the access token into its three parts: header, payload, and signature
@@ -24,7 +22,7 @@ function isValidAccessToken(accessToken) {
     }
 
     // token is valid
-    return true;
+    return accessToken;
 }
 
 function refreshAccessToken() {
@@ -36,12 +34,25 @@ function refreshAccessToken() {
                 if (response.ok) {
                     alert("재발급 성공")
                     console.log("Refresh Access Token Success!")
-                    return true;
+                    return response.access_token;
                 } else {
                     alert("재발급 실패")
                     console.log("Refresh Access Token Failed!")
-                    return false;
+                    window.href('/login')
                 }
             }
         );
+}
+
+function AccessToken() {
+    isValidAccessToken(localStorage.getItem('access_token')).then(response => {
+        if (response.ok) {
+            if (!localStorage.getItem('access_token') === response.access_token) {
+                localStorage.setItem('access_token', response.access_token);
+            }
+        }
+    }).catch(error => {
+        console.error('refresh token is invalid', error);
+        window.href('/login')
+    });
 }

@@ -1,27 +1,182 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
 <head>
+    <title>Input Form</title>
+    <script src="/js/tokenManager.js"></script>
 </head>
 <body>
-<h2>Update User Profile</h2>
-<form id="updateForm" th:object="${user}" th:action="@{/api/user/{id}(id=${user.id})}" method="post">
-    <!-- Hidden input field to store the user ID -->
-    <input type="hidden" th:field="*{id}" th:value="${user.id}" />
+<form>
+    UserName: <span th:text="${user.userName}"></span><br>
+    UserRole: <span th:text="${user.userRole}"></span><br>
 
-    <!-- Your form fields for email and nickname -->
-    <input type="text" th:field="*{email}" />
-    <input type="text" th:field="*{nickName}" />
+    <label for="password">Password:</label>
+    <input type="password" id="password" />
+    <button type="button" onclick="sendUpdatePasswordRequest()">Update Password</button>
+    <br>
 
-    <!-- Password change section -->
-    <h3>Change Password</h3>
-    <input type="password" id="currentPassword" placeholder="Current Password">
-    <input type="password" id="newPassword" placeholder="New Password">
-    <input type="password" id="confirmPassword" placeholder="Confirm New Password">
+    <label for="email">Email:</label>
+    <input type="email" id="email" th:value="${user.email}" />
+    <button type="button" onclick="sendValidateRequest('email')">Validate Email</button>
+    <button type="button" id="updateEmailBtn" onclick="sendUpdateRequest('email')">Update Email</button>
+    <br>
 
-    <button type="submit" id="updateButton">Update Profile</button>
+    <label for="nickName">Nickname:</label>
+    <input type="text" id="nickName" th:value="${user.nickName}" />
+    <button type="button" onclick="sendValidateRequest('nickName')">Validate Nickname</button>
+    <button type="button" id="updateNickNameBtn" onclick="sendUpdateRequest('nickName')">Update Nickname</button>
+    <br>
+
+    CreateAt: <span th:text="${user.createdAt}"></span>
 </form>
 
-<!-- Include the profile.js script at the bottom -->
-<script src="/js/profile.js"></script>
+<script>
+
+
+    let isTokenRefreshed = false;
+
+    function sendUpdatePasswordRequest() {
+        const accessToken = isValidAccessToken(localStorage.getItem('access_token'));
+        var value = document.getElementById('password').value;
+        var requestBody = { value: value };
+        fetch('/api/user/password', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            },
+            body: JSON.stringify(requestBody)
+        }).then(response => {
+            if (response.ok) {
+                alert("Update Success")
+            } else if (response.status === 401) {
+                if (!isTokenRefreshed) {
+                    refreshAccessToken().then(newToken => {
+                        isTokenRefreshed = true;
+                        if (newToken) {
+                            sendUpdatePasswordRequest();
+                        } else {
+                            window.location.href = '/login'; // Replace '/login' with the appropriate URL
+                        }
+                    });
+                }
+            } else {
+                console.error('Failed to Update ' + 'password');
+            }
+        }).catch(error => {
+            console.error('Error occurred while Update ' + 'password', error);
+        });
+    }
+
+    function sendUpdateRequest(inputType){
+        var value = document.getElementById(inputType).value;
+        var requestBody = { value: value };
+        fetch('/api/user', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            },
+            body: JSON.stringify(requestBody)
+        }).then(response => {
+            if (response.ok) {
+                alert("Update Success")
+            } else if (response.status === 401) {
+                if (!isTokenRefreshed) {
+                    refreshAccessToken().then(newToken => {
+                        isTokenRefreshed = true;
+                        if (newToken) {
+                            sendValidateRequest(inputType)
+                        } else {
+                            window.location.href = '/login';
+                        }
+                    });
+                }
+            } else {
+                console.error('Failed to Update ' + inputType);
+            }
+        }).catch(error => {
+            console.error('Error occurred while Update ' + inputType, error);
+        });
+    }
+
+    function sendValidateRequest(inputType) {
+        var value = document.getElementById(inputType).value;
+        var requestBody = { value: value };
+        fetch('/api/user/check-' + inputType, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            },
+            body: JSON.stringify(requestBody)
+        }).then(response => {
+            if (response.ok) {
+                enableUpdateButton(inputType)
+                alert("사용가능")
+            } else if (response.status === 401) {
+                if (!isTokenRefreshed) {
+                    refreshAccessToken().then(newToken => {
+                        isTokenRefreshed = true;
+                        if (newToken) {
+                            sendValidateRequest(inputType)
+                        } else {
+                            window.location.href = '/login';
+                        }
+                    });
+                }
+            } else {
+                console.error('Failed to Validate ' + inputType);
+            }
+        }).catch(error => {
+            console.error('Error occurred while validating ' + inputType, error);
+        });
+    }
+
+    function enableUpdateButton(inputType) {
+        switch (inputType) {
+            case 'email':
+                document.getElementById('updateEmailBtn').disabled = false;
+                break;
+            case 'nickName':
+                document.getElementById('updateNickNameBtn').disabled = false;
+                break;
+            default:
+                break;
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        fetchProtectedData();
+    });
+
+    function fetchProtectedData() {
+        const token = localStorage.getItem('access_token');
+        if (token === '') {
+            alert('No token')
+            window.location.replace('/login');
+        }
+        fetch('/user/edit', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Error fetching data: ' + response.status);
+            }
+        })
+        .then(data => {
+            // Display the fetched data in the 'protectedData' div
+            document.getElementById('protectedData').innerText = data;
+        })
+        .catch(error => {
+            console.error(error);
+            // Handle the error case, e.g., redirect to a login page or display an error message.
+        });
+    }
+</script>
 </body>
 </html>

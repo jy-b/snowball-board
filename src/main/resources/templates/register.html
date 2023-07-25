@@ -9,21 +9,21 @@
 <h2>Register User</h2>
 <form id="registerForm">
   <label for="userAccount">User Account:</label>
-  <input type="text" id="userAccount" name="userAccount" required><br>
+  <input type="text" id="userAccount" name="userAccount" required value="testId"><br>
 
   <label for="password">Password:</label>
   <input type="password" id="password" name="password" required><br>
 
   <label for="email">Email:</label>
-  <input type="email" id="email" name="email" required>
+  <input type="email" id="email" name="email" required value="email@email.com">
   <button type="button" id="emailCheckButton">Check Email</button><br>
 
   <label for="nickName">Nickname:</label>
-  <input type="text" id="nickName" name="nickName" required>
+  <input type="text" id="nickName" name="nickName" required value="NickName">
   <button type="button" id="nickNameCheckButton">Check Nickname</button><br>
 
   <label for="userName">User Name:</label>
-  <input type="text" id="userName" name="userName" required><br>
+  <input type="text" id="userName" name="userName" required value="UserName"><br>
 
   <button type="submit" id="registerButton" disabled>Register</button>
 </form>
@@ -52,26 +52,13 @@
       body: JSON.stringify(data)
     })
             .then(handleRegisterResponse)
-            .then(responseData => {
-              if (responseData.access_token) {
-                const accessToken = responseData.access_token;
-                if (isValidAccessToken(accessToken)) {
-                  localStorage.setItem('access_token', responseData.access_token);
-                  window.location.href = "/board";
-                }
-
-              } else {
-                alert("가입 실패. 생성된 토큰이 없어용");
-              }
-
-            })
             .catch(error => {
+              alert("가입 실패");
               console.error('Error:', error);
             });
   });
 
   // Add event listeners for email and nickname duplicate check buttons
-  // todo check validate before send to sever
   document.getElementById('emailCheckButton').addEventListener('click', function() {
     const email = document.getElementById('email').value;
     checkDuplicateEmail(email);
@@ -139,6 +126,7 @@
   function handleDuplicatedCheck(response) {
     if (response.ok) {
       // If the response status code is 2xx (success), continue with the registration process
+      alert("사용가능")
       enableRegisterButtonIfValid()
     } else {
       response.json().then(exceptionDto => {
@@ -151,8 +139,8 @@
 
   function handleRegisterResponse(response) {
     if (response.ok) {
-      // If the response status code is 2xx (success), continue with the registration process
-      return response.json();
+      alert("가입 성공");
+      window.location.replace("/login");
     } else {
       response.json().then(exceptionDto => {
         // Extract the message from the ExceptionDto and display it in the alert

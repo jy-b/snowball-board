@@ -12,19 +12,9 @@
     <input type="password" id="password" name="password" placeholder="Password" required><br>
     <button type="submit">Login</button>
 </form>
-<button id="refreshToken">Refresh_token</button>
-
 
 <script>
-    document.getElementById('refreshToken').addEventListener('click', function (event) {
-        event.preventDefault();
-        fetch('/api/auth/refresh-token', {
-            method: 'POST'
-        })
-            .then(handleLoginResponse);
-    });
-
-    document.getElementById('loginForm').addEventListener('submit', function(event) {
+    document.getElementById('loginForm').addEventListener('submit', function (event) {
         event.preventDefault();
 
         var form = event.target;
@@ -40,38 +30,46 @@
             },
             body: JSON.stringify(data)
         })
-            .then(handleLoginResponse)
-            .then(responseData => {
-                if (responseData.access_token) {
-                    const accessToken = responseData.access_token;
-                    if (isValidAccessToken(accessToken)) {
-                        localStorage.setItem('access_token', responseData.access_token);
-                        window.location.href = "/board";
-                    }
-
-                } else {
-                    alert("로그인 실패. 생성된 토큰이 없어용");
-                }
-
-            })
-            .catch(error => {
-                console.error('Error:', error);
-            });
+        .then(response => {
+            if (response.ok) {
+                return response.json(); // Parse the response as JSON
+            } else {
+                alert(response.statusText)
+            }
+        })
+        .then(responseData => {
+            alert('Login 성공');
+            console.log(responseData)
+            localStorage.setItem('access_token', responseData.access_token);
+            getPageIfLogin()
+        }).catch(error => {
+            alert("로그인 실패!.");
+            console.log('error' + error)
+        });
     });
 
-    function handleLoginResponse(response) {
-        if (response.ok) {
-            // If the response status code is 2xx (success), continue with the login process
-            return response.json();
-        } else {
-            // If the response status code is not 2xx (error), handle the error
-            response.json().then(exceptionDto => {
-                // Extract the message from the ExceptionDto and display it in the alert
-                alert(exceptionDto.message);
-            });
-            throw new Error("Login failed.");
-        }
+    function getPageIfLogin() {
+        fetch('user/edit', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + localStorage.getItem('access_token')
+            },
+        }).then(response => response.text())
+        .then(html => {
+            document.documentElement.innerHTML = html;
+        })
+        .catch(error => {
+            console.error('Error fetching data:', error);
+            window.location.replace('/login')
+        });
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        if (localStorage.getItem('access_token')) {
+            getPageIfLogin();
+        }
+    });
 </script>
 </body>
 </html>
