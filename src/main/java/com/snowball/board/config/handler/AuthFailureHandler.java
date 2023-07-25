@@ -43,7 +43,7 @@ public class AuthFailureHandler implements AuthenticationFailureHandler {
 
         ExceptionDto errorResponse = ExceptionDto.builder()
                 .message(message)
-                .statusCode(HttpStatus.BAD_REQUEST.value())
+                .statusCode(HttpStatus.UNAUTHORIZED.value())
                 .build();
 
         new ObjectMapper().writeValue(response.getOutputStream(), errorResponse);
