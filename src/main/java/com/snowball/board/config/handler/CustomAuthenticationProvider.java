@@ -7,6 +7,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -16,6 +17,8 @@ public class CustomAuthenticationProvider implements org.springframework.securit
 
     @Resource
     private final CustomUserDetailsService userDetailsService;
+    BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
     public CustomAuthenticationProvider(CustomUserDetailsService userDetailsService) {
         this.userDetailsService = userDetailsService;
     }
@@ -27,7 +30,7 @@ public class CustomAuthenticationProvider implements org.springframework.securit
         String password = (String) token.getCredentials();
 
         User user = (User) userDetailsService.loadUserByUsername(userAccount);
-        if (user.getPassword().equals(password)) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new BadCredentialsException(AuthExceptionMessage.MISMATCH_PASSWORD.message());
         }
         // set credentials null
