@@ -36,13 +36,13 @@ public class UserApiController {
         return new ResponseEntity<>(userService.validateDuplicateEmail(validateEmailDuplicateRequest), HttpStatus.OK);
     }
 
-    @PatchMapping("/{id}/password")
+    @PatchMapping("/password")
     public ResponseEntity<?> updatePassword(@RequestBody @Valid UpdatePasswordRequest updatePasswordRequest, @PathVariable Long id) {
 
         return new ResponseEntity<>(userService.updatePassword(id, updatePasswordRequest), HttpStatus.OK);
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping
     public ResponseEntity<?> updateUserInfo(@RequestBody @Valid UpdateInfoRequest updateInfoRequest, @PathVariable Long id) {
 
         return new ResponseEntity<>(userService.updateUserInfo(id, updateInfoRequest), HttpStatus.OK);
